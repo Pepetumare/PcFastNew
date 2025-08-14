@@ -1,0 +1,5 @@
+2025-08-14 12:00:12,579 - INFO - Agente iniciado.
+2025-08-14 12:00:12,581 - INFO - Iniciando bucle de monitoreo.
+2025-08-14 12:00:12,582 - INFO - El archivo 'specs_sent.flag' ya existe. Omitiendo envío de especificaciones.
+2025-08-14 12:00:13,583 - INFO - Enviando datos a http://127.0.0.1:8000/api/metrics...
+2025-08-14 12:00:14,028 - INFO - Respuesta del servidor para 'metrics': Código 200

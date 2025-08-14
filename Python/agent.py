@@ -5,120 +5,140 @@ import platform
 import json
 import os
 import threading
+import wmi
+import logging
+import pythoncom # ¡Nuevo! Importamos la librería COM
 from tkinter import Tk, Label, Entry, Button, messagebox
 
+# --- CONFIGURACIÓN DE LOGGING ---
+logging.basicConfig(
+    filename='agent.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
 # --- CONFIGURACIÓN ---
-API_ENDPOINT = "http://127.0.0.1:8000/api/metrics"
+API_BASE_URL = "http://127.0.0.1:8000/api"
 PC_IDENTIFIER = platform.node()
 CONFIG_FILE = 'config.json'
-# El agente reportará cada 15 minutos en un entorno real. Para pruebas, puedes bajarlo a 60 segundos.
+SPECS_SENT_FLAG = 'specs_sent.flag'
 REPORT_INTERVAL_SECONDS = 900 
 
-# --- FUNCIONES DE CONFIGURACIÓN ---
-
-def save_token(token):
-    """Guarda el token en el archivo de configuración."""
+# --- LÓGICA DE CONFIGURACIÓN Y TOKEN ---
+def save_config(token):
     with open(CONFIG_FILE, 'w') as f:
         json.dump({'api_token': token}, f)
 
-def load_token():
-    """Carga el token desde el archivo de configuración."""
+def load_config():
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, 'r') as f:
             try:
-                config = json.load(f)
-                return config.get('api_token')
+                return json.load(f)
             except json.JSONDecodeError:
                 return None
     return None
 
-# --- LÓGICA DEL AGENTE ---
+# --- LÓGICA PARA OBTENER SPECS DE HARDWARE ---
+def get_hardware_specs():
+    logging.info("Recolectando especificaciones de hardware...")
+    try:
+        c = wmi.WMI()
+        specs = {
+            'cpu': c.Win32_Processor()[0].Name.strip(),
+            'ram_total_gb': round(int(c.Win32_ComputerSystem()[0].TotalPhysicalMemory) / (1024**3)),
+            'disks': [],
+            'motherboard': f"{c.Win32_BaseBoard()[0].Manufacturer} {c.Win32_BaseBoard()[0].Product}"
+        }
+        for disk in c.Win32_DiskDrive():
+            specs['disks'].append({
+                'model': disk.Model.strip(),
+                'size_gb': round(int(disk.Size) / (1024**3)),
+                'type': 'SSD' if 'SSD' in disk.Model else 'HDD'
+            })
+        logging.info(f"Especificaciones recolectadas: {json.dumps(specs)}")
+        return specs
+    except Exception as e:
+        logging.error(f"Error al recolectar especificaciones: {e}")
+        return None
 
+# --- LÓGICA DEL AGENTE ---
 def get_system_metrics():
-    """Recolecta las métricas clave del sistema."""
     cpu_usage = psutil.cpu_percent(interval=1)
     ram_usage = psutil.virtual_memory().percent
     disk_path = 'C:\\' if platform.system() == "Windows" else '/'
     disk_usage = psutil.disk_usage(disk_path).percent
-    try:
-        temps = psutil.sensors_temperatures()
-        cpu_temp = temps['coretemp'][0].current if 'coretemp' in temps else None
-    except (AttributeError, KeyError):
-        cpu_temp = None
+    return {"pc_identifier": PC_IDENTIFIER, "cpu_usage": cpu_usage, "ram_usage": ram_usage, "disk_usage": disk_usage}
 
-    return {
-        "pc_identifier": PC_IDENTIFIER,
-        "cpu_usage": cpu_usage,
-        "ram_usage": ram_usage,
-        "disk_usage": disk_usage,
-        "cpu_temperature": cpu_temp
-    }
-
-def send_metrics_to_server(metrics, api_token):
-    """Envía las métricas recolectadas al servidor web."""
+def send_data_to_server(endpoint, payload, api_token):
+    url = f"{API_BASE_URL}/{endpoint}"
+    logging.info(f"Enviando datos a {url}...")
     try:
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             'Authorization': f'Bearer {api_token}'
         }
-        requests.post(API_ENDPOINT, data=json.dumps(metrics), headers=headers, timeout=15)
-    except requests.exceptions.RequestException:
-        # Silenciamos los errores de conexión para que el usuario no vea nada.
-        # En un futuro se podría añadir un sistema de logs.
-        pass
+        response = requests.post(url, data=json.dumps(payload), headers=headers, timeout=20)
+        logging.info(f"Respuesta del servidor para '{endpoint}': Código {response.status_code}")
+        if response.status_code != 200:
+            logging.warning(f"Detalle de la respuesta: {response.text}")
+        return response
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error de conexión al enviar a '{endpoint}': {e}")
+        return None
 
 def monitoring_loop(api_token):
-    """Bucle principal que se ejecuta en segundo plano."""
+    # --- ¡CORRECCIÓN CLAVE! ---
+    # Inicializamos el entorno COM para este hilo.
+    pythoncom.CoInitialize()
+    
+    logging.info("Iniciando bucle de monitoreo.")
+    if not os.path.exists(SPECS_SENT_FLAG):
+        specs = get_hardware_specs()
+        if specs:
+            response = send_data_to_server('specs', specs, api_token)
+            if response and response.status_code == 200:
+                logging.info("Especificaciones enviadas con éxito. Creando archivo flag.")
+                open(SPECS_SENT_FLAG, 'a').close()
+            else:
+                logging.error("No se pudo enviar las especificaciones. Se reintentará en el próximo reinicio.")
+    else:
+        logging.info("El archivo 'specs_sent.flag' ya existe. Omitiendo envío de especificaciones.")
+
     while True:
         metrics = get_system_metrics()
-        send_metrics_to_server(metrics, api_token)
+        send_data_to_server('metrics', metrics, api_token)
         time.sleep(REPORT_INTERVAL_SECONDS)
 
-# --- INTERFAZ GRÁFICA PARA EL TOKEN ---
-
+# --- INTERFAZ GRÁFICA (sin cambios) ---
 def ask_for_token_gui():
-    """Crea y muestra una ventana para que el usuario ingrese el token."""
     window = Tk()
     window.title("Configuración de Pc Fast Mariquina")
     window.geometry("400x150")
-    window.resizable(False, False)
-
     def on_save():
         token = entry.get().strip()
-        if len(token) > 10: # Validación simple
-            save_token(token)
-            messagebox.showinfo("Éxito", "¡Token guardado! El monitoreo comenzará ahora en segundo plano.")
+        if len(token) > 10:
+            save_config(token)
+            messagebox.showinfo("Éxito", "¡Token guardado! El monitoreo comenzará ahora.")
             window.destroy()
         else:
-            messagebox.showerror("Error", "El token parece inválido. Por favor, pégalo correctamente.")
-
-    label = Label(window, text="Por favor, pega el token de acceso de tu equipo:", wraplength=380)
-    label.pack(pady=10)
-
+            messagebox.showerror("Error", "El token parece inválido.")
+    Label(window, text="Por favor, pega el token de acceso de tu equipo:").pack(pady=10)
     entry = Entry(window, width=50)
-    entry.pack(pady=5, padx=10)
-
-    button = Button(window, text="Guardar y Empezar a Monitorear", command=on_save)
-    button.pack(pady=10)
-    
+    entry.pack(pady=5)
+    Button(window, text="Guardar y Empezar a Monitorear", command=on_save).pack(pady=10)
     window.mainloop()
 
 # --- PUNTO DE ENTRADA PRINCIPAL ---
-
 if __name__ == "__main__":
-    api_token = load_token()
-
-    if not api_token:
+    logging.info("Agente iniciado.")
+    config = load_config()
+    if not config or not config.get('api_token'):
         ask_for_token_gui()
-        api_token = load_token()
+        config = load_config()
 
-    if api_token:
-        # Iniciamos el bucle de monitoreo en un hilo separado
-        # para que la aplicación principal pueda cerrarse sin detener el agente.
-        monitor_thread = threading.Thread(target=monitoring_loop, args=(api_token,), daemon=True)
+    if config and config.get('api_token'):
+        monitor_thread = threading.Thread(target=monitoring_loop, args=(config['api_token'],), daemon=True)
         monitor_thread.start()
-        # Mantenemos el script principal vivo para que el hilo daemon no muera inmediatamente.
-        # En el .exe, esto no será necesario de la misma forma.
         while True:
             time.sleep(1)
