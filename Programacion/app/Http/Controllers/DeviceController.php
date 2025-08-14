@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\MonitoredPc; // Seguimos usando el modelo original para los PCs
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -13,7 +14,9 @@ class DeviceController extends Controller
      */
     public function register()
     {
-        return view('devices.register');
+        // Obtenemos todos los usuarios con el rol 'user' para el menú desplegable.
+        $users = User::where('role', 'user')->get();
+        return view('devices.register', ['users' => $users]);
     }
 
     /**

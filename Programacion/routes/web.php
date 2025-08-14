@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\DeviceController; // El nuevo controlador funcional
 use App\Http\Controllers\MonitoredPcController; // Lo mantenemos para la vista de detalles
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // --- RUTAS PÚBLICAS ---
@@ -33,6 +34,9 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->group(functio
     Route::get('/register-device', [DeviceController::class, 'register'])->name('devices.register');
     Route::post('/register-device', [DeviceController::class, 'store'])->name('devices.store');
     Route::get('/devices/{pc}/token', [DeviceController::class, 'showToken'])->name('devices.show-token');
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

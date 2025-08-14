@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class MonitoredPc extends Model
 {
@@ -26,5 +27,10 @@ class MonitoredPc extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function hardwareSpec(): HasOne
+    {
+        return $this->hasOne(HardwareSpec::class);
     }
 }

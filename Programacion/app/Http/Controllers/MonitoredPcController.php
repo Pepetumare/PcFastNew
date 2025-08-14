@@ -3,14 +3,48 @@
 namespace App\Http\Controllers;
 
 use App\Models\MonitoredPc;
+use App\Services\RecommendationService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class MonitoredPcController extends Controller
 {
-    public function show(MonitoredPc $pc)
+public function show(MonitoredPc $pc, RecommendationService $recommendationService)
     {
-        return view('pcs.show', ['pc' => $pc]);
+        $user = Auth::user();
+
+        // Verificación de autorización
+        if (!$user->isAdmin() && $pc->user_id !== $user->id) {
+            abort(403, 'Acceso no autorizado.');
+        }
+
+        // Obtenemos las métricas de las últimas 24 horas.
+        $metrics = $pc->metrics()
+                      ->where('created_at', '>=', Carbon::now()->subDay())
+                      ->orderBy('created_at', 'asc')
+                      ->get();
+
+        // Formateamos los datos para los gráficos.
+        $chartLabels = $metrics->map(fn($metric) => $metric->created_at->format('H:i'));
+        $cpuData = $metrics->pluck('cpu_usage');
+        $ramData = $metrics->pluck('ram_usage');
+        $diskData = $metrics->pluck('disk_usage');
+        
+        // --- LÍNEA CLAVE ---
+        // Generamos las recomendaciones usando el servicio.
+        $recommendations = $recommendationService->generateForPc($pc);
+        
+        // Pasamos todas las variables a la vista.
+        return view('pcs.show', [
+            'pc' => $pc->load('hardwareSpec'),
+            'chartLabels' => $chartLabels,
+            'cpuData' => $cpuData,
+            'ramData' => $ramData,
+            'diskData' => $diskData,
+            'recommendations' => $recommendations, // ¡Ahora la variable se está enviando!
+        ]);
     }
 
     public function create()
