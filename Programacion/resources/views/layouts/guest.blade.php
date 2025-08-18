@@ -1,45 +1,90 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <title>{{ config('app.name', 'Pc Fast Mariquina') }}</title>
 
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col bg-gray-100">
-            <!-- Barra de Navegación -->
-            <nav class="bg-white shadow-md">
-                <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-                    <a href="{{ route('home') }}" class="font-bold text-xl text-gray-800">Pc Fast Mariquina</a>
-                    <div class="flex items-center space-x-6">
-                        <a href="{{ route('home') }}" class="text-gray-600 hover:text-blue-600">Inicio</a>
-                        <a href="{{ route('about') }}" class="text-gray-600 hover:text-blue-600">Nosotros</a>
-                        <a href="{{ route('contact') }}" class="text-gray-600 hover:text-blue-600">Contáctanos</a>
-                        <a href="{{ route('login') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Acceder</a>
-                    </div>
+    {{-- Fuentes y estilos --}}
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{-- AOS Animations --}}
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+</head>
+
+<body class="font-sans text-gray-900 antialiased bg-gray-50">
+    <div class="min-h-screen flex flex-col">
+        <!-- Navbar -->
+        <nav class="bg-white shadow-md fixed w-full z-50 transition duration-300">
+            <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <a href="{{ route('home') }}" class="font-bold text-xl text-gray-800 hover:text-blue-600">Pc Fast
+                    Mariquina</a>
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="{{ route('home') }}" class="nav-link">Inicio</a>
+                    <a href="{{ route('about') }}" class="nav-link">Nosotros</a>
+                    <a href="{{ route('contact') }}" class="nav-link">Contáctanos</a>
+                    <a href="{{ route('login') }}"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow">Acceder</a>
                 </div>
-            </nav>
+                <button id="menu-btn" class="md:hidden text-gray-800 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+            <div id="mobile-menu" class="hidden md:hidden bg-white px-6 pb-4 space-y-2">
+                <a href="{{ route('home') }}" class="block nav-link">Inicio</a>
+                <a href="{{ route('about') }}" class="block nav-link">Nosotros</a>
+                <a href="{{ route('contact') }}" class="block nav-link">Contáctanos</a>
+                <a href="{{ route('login') }}"
+                    class="block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Acceder</a>
+            </div>
+        </nav>
 
-            <!-- Contenido Principal -->
-            <main class="flex-grow">
-                {{ $slot }}
-            </main>
+        <!-- Contenido principal -->
+        <main class="flex-grow mt-20">
+            {{ $slot }}
+        </main>
 
-            <!-- Footer -->
-            <footer class="bg-gray-800 text-white py-4">
-                <div class="container mx-auto px-6 text-center">
-                    &copy; {{ date('Y') }} Pc Fast Mariquina. Todos los derechos reservados.
+        <!-- Footer -->
+        <footer class="bg-gray-900 text-gray py-8 mt-12">
+            <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-sm">&copy; {{ date('Y') }} Pc Fast Mariquina. Todos los derechos reservados.</p>
+                <div class="flex space-x-4 mt-4 md:mt-0">
+                    <a href="#" class="hover:text-blue-400 transition"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="hover:text-blue-400 transition"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="hover:text-blue-400 transition"><i class="fab fa-whatsapp"></i></a>
                 </div>
-            </footer>
-        </div>
-    </body>
+            </div>
+        </footer>
+    </div>
+
+    {{-- Scripts --}}
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
+
+    <style>
+        .nav-link {
+            @apply text-gray-600 hover:text-blue-600 transition;
+        }
+    </style>
+</body>
+
 </html>
