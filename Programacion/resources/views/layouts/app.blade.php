@@ -15,6 +15,9 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+    {{-- CSS de Swiper.js --}}
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+
     {{-- Tailwind + JS --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -59,6 +62,25 @@
         AOS.init({
             duration: 800,
             once: true
+        });
+    </script>
+
+    {{-- Incluir JS de Swiper.js y la inicialización --}}
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script>
+        const swiper = new Swiper('.swiper-container', {
+            loop: true,
+            autoplay: {
+                delay: 5000,
+            },
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
         });
     </script>
 </body>

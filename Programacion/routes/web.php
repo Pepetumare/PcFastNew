@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\CarouselController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\DeviceController; // El nuevo controlador funcional
 use App\Http\Controllers\MonitoredPcController; // Lo mantenemos para la vista de detalles
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +39,16 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->group(functio
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
+
+    Route::get('/carousel', [CarouselController::class, 'index'])->name('carousel.index');
+    Route::get('/carousel/create', [CarouselController::class, 'create'])->name('carousel.create');
+    Route::post('/carousel', [CarouselController::class, 'store'])->name('carousel.store');
+    Route::get('/carousel/{carouselSlide}/edit', [CarouselController::class, 'edit'])->name('carousel.edit');
+    Route::put('/carousel/{carouselSlide}', [CarouselController::class, 'update'])->name('carousel.update');
+    Route::delete('/carousel/{carouselSlide}', [CarouselController::class, 'destroy'])->name('carousel.destroy');
+
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
 });
 
 require __DIR__ . '/auth.php';

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CarouselSlide;
 use Illuminate\Http\Request;
 
 class PageController extends Controller
@@ -11,7 +12,8 @@ class PageController extends Controller
      */
     public function home()
     {
-        return view('home');
+        $slides = CarouselSlide::where('is_active', true)->orderBy('order')->get();
+        return view('home', compact('slides'));
     }
 
     /**

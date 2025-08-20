@@ -1,24 +1,42 @@
 <x-guest-layout>
     {{-- Hero con fondo y animaciones --}}
-    <section class="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden">
-        <div class="absolute inset-0 opacity-10">
-            <div class="absolute -top-20 -left-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl"></div>
-            <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-indigo-500 rounded-full blur-3xl"></div>
-        </div>
+        <!-- Slider main container -->
+        <div class="swiper-container h-[60vh] md:h-[80vh] bg-gray-800">
+            <!-- Additional required wrapper -->
+            <div class="swiper-wrapper">
+                <!-- Slides -->
+                @forelse($slides as $slide)
+                <div class="swiper-slide relative">
+                    <img src="{{ asset('storage/' . $slide->image_path) }}" class="w-full h-full object-cover" alt="{{ $slide->title }}">
+                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                        <div class="text-center text-white p-4">
+                            <h1 class="text-4xl md:text-5xl font-bold leading-tight">{{ $slide->title }}</h1>
+                            <p class="mt-4 text-lg text-gray-200 max-w-2xl mx-auto">{{ $slide->subtitle }}</p>
+                            <a href="{{ $slide->button_link }}" class="mt-8 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">{{ $slide->button_text }}</a>
+                        </div>
+                    </div>
+                </div>
+                @empty
+                {{-- Slide por defecto si no hay ninguno configurado --}}
+                <div class="swiper-slide relative">
+                    <img src="https://placehold.co/1920x1080/374151/FFFFFF?text=Pc+Fast+Mariquina" class="w-full h-full object-cover" alt="Placeholder">
+                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                        <div class="text-center text-white p-4">
+                            <h1 class="text-4xl md:text-5xl font-bold leading-tight">Monitoreo Proactivo</h1>
+                            <p class="mt-4 text-lg text-gray-200">Configura tu primer slide en el panel de administrador.</p>
+                            <a href="{{ route('register') }}" class="mt-8 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg">Contratar Servicio</a>
+                        </div>
+                    </div>
+                </div>
+                @endforelse
+            </div>
+            <!-- If we need pagination -->
+            <div class="swiper-pagination"></div>
 
-        <div class="container mx-auto px-6 py-32 text-center relative z-10">
-            <h1 class="text-4xl md:text-6xl font-extrabold leading-tight animate-fadeInUp">
-                Monitoreo Proactivo <span class="text-blue-400">para tu PC</span> en Mariquina
-            </h1>
-            <p class="mt-6 text-lg text-gray-300 max-w-2xl mx-auto animate-fadeInUp delay-200">
-                Anticipamos los problemas antes de que ocurran. Tu tranquilidad es nuestro servicio.
-            </p>
-            <a href="{{ route('register') }}"
-                class="mt-10 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full shadow-lg transform hover:scale-105 transition duration-300 animate-fadeInUp delay-400">
-                🚀 Contratar Servicio
-            </a>
+            <!-- If we need navigation buttons -->
+            <div class="swiper-button-prev text-white"></div>
+            <div class="swiper-button-next text-white"></div>
         </div>
-    </section>
 
     {{-- Características con iconos y hover effects --}}
     <section class="py-20 bg-white">
@@ -102,4 +120,24 @@
             animation-delay: 0.4s;
         }
     </style>
+
+    @push('scripts')
+    <script>
+        const swiper = new Swiper('.swiper-container', {
+            loop: true,
+            autoplay: {
+                delay: 5000,
+                disableOnInteraction: false,
+            },
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+        });
+    </script>
+    @endpush
 </x-guest-layout>

@@ -6,7 +6,11 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
+                        @if ($logoPath)
+                            <img src="{{ asset('storage/' . $logoPath) }}" alt="Logo" class="block h-9 w-auto">
+                        @else
+                            <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                        @endif
                     </a>
                 </div>
 
@@ -18,6 +22,12 @@
                     @if (auth()->user()->isAdmin())
                         <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.index')">
                             {{ __('Gestionar Usuarios') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('carousel.index')" :active="request()->routeIs('carousel.index')">
+                            {{ __('Gestionar Carrusel') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('settings.index')" :active="request()->routeIs('settings.index')">
+                            {{ __('Ajustes') }}
                         </x-nav-link>
                     @endif
                 </div>
@@ -86,6 +96,12 @@
             @if (auth()->user()->isAdmin())
                 <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.index')">
                     {{ __('Gestionar Usuarios') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('carousel.index')" :active="request()->routeIs('carousel.index')">
+                    {{ __('Gestionar Carrusel') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('settings.index')" :active="request()->routeIs('settings.index')">
+                    {{ __('Ajustes') }}
                 </x-responsive-nav-link>
             @endif
         </div>

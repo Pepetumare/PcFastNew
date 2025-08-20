@@ -16,6 +16,7 @@
 
     {{-- AOS Animations --}}
     <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
 </head>
 
 <body class="font-sans text-gray-900 antialiased bg-gray-50">
@@ -23,8 +24,13 @@
         <!-- Navbar -->
         <nav class="bg-white shadow-md fixed w-full z-50 transition duration-300">
             <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-                <a href="{{ route('home') }}" class="font-bold text-xl text-gray-800 hover:text-blue-600">Pc Fast
-                    Mariquina</a>
+                <a href="{{ route('home') }}">
+                    @if ($logoPath)
+                        <img src="{{ asset('storage/' . $logoPath) }}" alt="Logo Pc Fast Mariquina" class="h-10">
+                    @else
+                        <span class="font-bold text-xl text-gray-800">Pc Fast Mariquina</span>
+                    @endif
+                </a>
                 <div class="hidden md:flex items-center space-x-6">
                     <a href="{{ route('home') }}" class="nav-link">Inicio</a>
                     <a href="{{ route('about') }}" class="nav-link">Nosotros</a>
@@ -85,6 +91,12 @@
             @apply text-gray-600 hover:text-blue-600 transition;
         }
     </style>
+    @vite(['resources/js/app.js'])
+
+    <!-- Swiper.js JS -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+    @stack('scripts')
 </body>
 
 </html>
